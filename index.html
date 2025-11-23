@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bahujan Vikas Aghadi - Voter Search</title>
+
+    <!-- 1. CSS FRAMEWORK (Tailwind) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- 2. ICONS (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- 3. CUSTOM CSS -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700;900&display=swap');
+
+        body {
+            font-family: 'Noto Sans', sans-serif;
+            background-color: #f1f5f9;
+            /* slate-100 */
+        }
+
+        /* Custom Gradient Text or Backgrounds if needed */
+        .bg-bva-gradient {
+            background: linear-gradient(to right, #ffed00, #ffed00, #ffed00);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Loader Animation */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Utility to hide elements */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body class="text-slate-900">
+
+    <!-- --- HEADER SECTION --- -->
+    <header class="w-full">
+        <!-- Yellow Banner -->
+        <div class="bg-bva-gradient p-4 shadow-md relative overflow-hidden">
+            <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 z-10 relative">
+                <div class="flex items-center gap-4">
+                    <!-- Whistle Logo -->
+                    <div
+                        class="w-20 h-20 bg-white rounded-full shadow-lg flex items-center justify-center border-4 border-yellow-600 overflow-hidden">
+                        <img src="assets\logo.jpg" alt="BVA Logo" class="w-16 h-16 object-contain"
+                            onerror="this.style.display='none'; this.parentNode.innerText='🎺';">
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-extrabold text-black uppercase tracking-tighter drop-shadow-sm">
+                            Bahujan Vikas Aghadi
+                        </h1>
+                        <p class="text-black font-bold text-sm tracking-wide">
+                            Voters Search Engine 2025
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- --- MAIN CONTENT --- -->
+    <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+
+        <!-- NOTIFICATION TOAST -->
+        <div id="notification"
+            class="hidden fixed top-4 right-4 z-50 bg-green-600 text-white px-6 py-3 rounded shadow-lg font-bold animate-bounce">
+            Action Successful
+        </div>
+
+        <!-- SEARCH SECTION (Tab 1) -->
+        <div id="search-tab" class="block">
+
+            <!-- Search Form Card -->
+            <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-yellow-500">
+                <form id="search-form">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase">First Name</label>
+                            <input type="text" id="filter-first"
+                                class="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-yellow-400 outline-none"
+                                placeholder="First Name">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase">Middle Name</label>
+                            <input type="text" id="filter-middle"
+                                class="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-yellow-400 outline-none"
+                                placeholder="Middle Name">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase">Last Name</label>
+                            <input type="text" id="filter-last"
+                                class="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-yellow-400 outline-none"
+                                placeholder="Last Name">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase">Voter Epic Number</label>
+                            <input type="text" id="filter-epic"
+                                class="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-yellow-400 outline-none"
+                                placeholder="EPIC No">
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3 justify-end border-t border-slate-100 pt-4">
+                        <button type="button" id="btn-clear"
+                            class="px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded font-bold flex items-center gap-2">
+                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Clear
+                        </button>
+                        <button type="submit"
+                            class="px-8 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold flex items-center gap-2 shadow-md">
+                            <i data-lucide="search" class="w-4 h-4"></i> Search
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Results Area -->
+            <div id="results-container" class="mt-6 hidden">
+                <div class="flex items-center gap-2 mb-4">
+                    <i data-lucide="database" class="text-blue-600 w-5 h-5"></i>
+                    <h2 class="font-bold text-lg text-slate-700">Search Results (<span id="result-count">0</span>)</h2>
+                </div>
+
+                <!-- Loading Spinner -->
+                <div id="loader" class="hidden flex justify-center py-10">
+                    <div class="loader"></div>
+                </div>
+
+                <!-- Cards Grid -->
+                <div id="cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Cards injected via JS -->
+                </div>
+
+                <!-- No Results Message -->
+                <div id="no-results"
+                    class="hidden bg-white p-12 rounded border border-slate-200 text-center text-slate-400">
+                    <i data-lucide="search" class="mx-auto mb-3 opacity-50 w-12 h-12"></i>
+                    <p>No records found matching your criteria.</p>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- --- WHATSAPP MODAL --- -->
+    <div id="whatsapp-modal"
+        class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-md rounded-lg shadow-2xl overflow-hidden mx-4 flex flex-col max-h-[90vh]">
+            <!-- Header -->
+            <div class="bg-yellow-300 p-4 flex justify-between items-center border-b border-yellow-400 shrink-0">
+                <h3 class="text-xl font-bold text-slate-900">Voter Slip Preview</h3>
+                <button id="close-modal" class="text-slate-700 hover:text-black transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <!-- Content (Scrollable) -->
+            <div class="overflow-y-auto p-0 bg-slate-100">
+                <!-- Image Preview -->
+                <img src="assets/Foater.jpg" alt="Header" class="w-full h-auto block">
+
+                <!-- Text Preview -->
+                <div class="p-6 space-y-4 text-sm text-slate-800" id="modal-content">
+                    <!-- Details injected via JS -->
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-4 bg-white border-t border-slate-200 shrink-0 flex flex-col gap-3">
+                <div class="flex gap-2">
+                    <input type="tel" id="whatsapp-number" placeholder="Whatsapp Number"
+                        class="flex-1 p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div class="grid grid-cols-1 gap-2">
+                    <button id="btn-share-image"
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded font-bold transition-colors flex items-center justify-center gap-2 shadow-sm text-sm">
+                        <i data-lucide="share-2" class="w-5 h-5"></i> Share Slip (Image + Text)
+                    </button>
+                    <button id="btn-send-text"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-bold transition-colors flex items-center justify-center gap-2 shadow-sm text-sm">
+                        <i data-lucide="message-circle" class="w-4 h-4"></i> Send Text Only
+                    </button>
+                </div>
+                <p class="text-[10px] text-slate-400 text-center">
+                    *Use "Share Slip" on Mobile to send Image. Use "Send Text Only" on Desktop.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- --- FOOTER SECTION --- -->
+    <footer class="w-full mt-8">
+        <img src="assets/Foater.jpg" alt="BVA Footer" class="w-full h-auto block">
+    </footer>
+
+    <!-- 4. JAVASCRIPT LOGIC -->
+    <script>
+        // --- STATE ---
+        let voters = [];
+        let currentVoter = null;
+        let currentAssemblyInfo = null;
+
+        // --- DOM ELEMENTS ---
+        const searchForm = document.getElementById('search-form');
+        const resultsContainer = document.getElementById('results-container');
+        const cardsGrid = document.getElementById('cards-grid');
+        const noResults = document.getElementById('no-results');
+        const resultCount = document.getElementById('result-count');
+        const loader = document.getElementById('loader');
+        const notification = document.getElementById('notification');
+
+        // Modal Elements
+        const modal = document.getElementById('whatsapp-modal');
+        const closeModalBtn = document.getElementById('close-modal');
+        const modalContent = document.getElementById('modal-content');
+        const whatsappInput = document.getElementById('whatsapp-number');
+        const shareImageBtn = document.getElementById('btn-share-image');
+        const sendTextBtn = document.getElementById('btn-send-text');
+
+        // --- INITIALIZATION ---
+        async function init() {
+            lucide.createIcons(); // Initialize icons
+        }
+
+        // --- DATA HANDLING ---
+        async function searchVoters(params) {
+            loader.classList.remove('hidden');
+            cardsGrid.innerHTML = '';
+            resultsContainer.classList.remove('hidden');
+            noResults.classList.add('hidden');
+
+            try {
+                const query = new URLSearchParams(params).toString();
+                const res = await fetch(`/api/search?${query}`);
+                const data = await res.json();
+                renderResults(data);
+            } catch (e) {
+                console.error("Search Error", e);
+                showToast("Error searching voters");
+            } finally {
+                loader.classList.add('hidden');
+            }
+        }
+
+        // --- SEARCH LOGIC ---
+        searchForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const fName = document.getElementById('filter-first').value.trim();
+            const mName = document.getElementById('filter-middle').value.trim();
+            const lName = document.getElementById('filter-last').value.trim();
+            const epic = document.getElementById('filter-epic').value.trim();
+
+            searchVoters({ first: fName, middle: mName, last: lName, epic: epic });
+        });
+
+        document.getElementById('btn-clear').addEventListener('click', () => {
+            searchForm.reset();
+            resultsContainer.classList.add('hidden');
+        });
+
+        // --- RENDER LOGIC ---
+        function renderResults(data) {
+            resultCount.innerText = data.length;
+
+            if (data.length === 0) {
+                noResults.classList.remove('hidden');
+                return;
+            }
+
+            noResults.classList.add('hidden');
+
+            data.forEach((voter, index) => {
+                const info = parseAssemblyInfo(voter.assembly_info);
+
+                const card = document.createElement('div');
+                card.className = 'bg-white border border-slate-300 rounded-lg shadow-sm card-hover transition-all overflow-hidden flex flex-col';
+                card.innerHTML = `
+                    <div class="bg-yellow-50 p-3 border-b border-yellow-100">
+                        <h3 class="font-bold text-slate-800 text-sm">
+                        Assembly: <span class="text-blue-700">${info.assembly}</span>
+                        </h3>
+                    </div>
+                    <div class="p-4 space-y-3 flex-1 text-sm">
+                        <div class="space-y-1">
+                            <div class="flex flex-col">
+                                <span class="text-xs text-slate-500 font-bold uppercase">Name</span>
+                                <span class="font-bold text-slate-800">${voter.name}</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-xs text-slate-500 font-bold uppercase">Age / Gender</span>
+                                <span class="font-medium text-slate-700">${voter.age_gender}</span>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-slate-100">
+                            <span class="text-xs text-slate-500 font-bold uppercase block mb-1">Address</span>
+                            <p class="text-slate-600 leading-tight text-xs">${voter.address}</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 pt-2">
+                            <div>
+                                <span class="text-xs text-slate-500 font-bold">Part Number: </span>
+                                <span class="font-bold text-slate-800">${info.part}</span>
+                            </div>
+                            <div>
+                                <span class="text-xs text-slate-500 font-bold">Serial Number: </span>
+                                <span class="font-bold text-slate-800">${info.serial}</span>
+                            </div>
+                        </div>
+                        <div class="bg-slate-100 p-2 rounded text-center mt-2">
+                            <span class="text-xs text-slate-500 block">Voter Epic Number</span>
+                            <span class="font-mono font-bold text-blue-800 text-base">${voter.epic_no}</span>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-slate-50 border-t border-slate-200">
+                        <button onclick='openModal(${JSON.stringify(voter).replace(/'/g, "&#39;")})' class="w-full py-2 bg-green-600 hover:bg-green-700 text-white rounded flex items-center justify-center gap-2 text-sm font-bold transition-colors">
+                            <i data-lucide="message-circle" class="w-4 h-4"></i> Slip Via Whatsapp
+                        </button>
+                    </div>
+                `;
+                cardsGrid.appendChild(card);
+            });
+            lucide.createIcons(); // Refresh icons in new cards
+        }
+
+        function parseAssemblyInfo(info) {
+            if (!info) return { assembly: 'N/A', part: 'N/A', serial: 'N/A' };
+            // Format: 131/277/41
+            const parts = info.split('/');
+            return {
+                assembly: parts[0] || 'N/A',
+                part: parts[1] || 'N/A',
+                serial: parts[2] || 'N/A'
+            };
+        }
+
+        // --- MODAL LOGIC ---
+        window.openModal = (voter) => {
+            currentVoter = voter;
+            currentAssemblyInfo = parseAssemblyInfo(voter.assembly_info);
+
+            // Parse Name (Simple split)
+            const nameParts = voter.name.split(' ');
+            const firstName = nameParts[0] || '';
+            const middleName = nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : (nameParts[1] || '');
+            const lastName = nameParts.length > 2 ? nameParts[nameParts.length - 1] : (nameParts.length === 2 ? nameParts[1] : '');
+
+            modalContent.innerHTML = `
+                <div class="space-y-3 font-mono">
+                    <p class="font-bold text-lg border-b border-slate-300 pb-2">Voters Slip</p>
+                    <p><strong>नमस्कार, ${firstName}</strong></p>
+                    <p><strong>विधानसभा - ${currentAssemblyInfo.assembly}</strong></p>
+                    <p><strong>*उमेदवार : श्री सचिन संभाजी देसाई *</strong></p>
+                    <p><strong>पार्टी : बहुजन विकास आघाडी</strong></p>
+                    <p><strong>निशाणी : coming soon</strong></p>
+                    <p>-----------------------------</p>
+                    <p>Assembly: <strong>${currentAssemblyInfo.assembly}</strong></p>
+                    <p>First Name: <strong>${firstName}</strong></p>
+                    <p>Middle Name: <strong>${middleName}</strong></p>
+                    <p>Last Name: <strong>${lastName}</strong></p>
+                    <p>Booth Address: <strong>${voter.address}</strong></p>
+                    <p>Yadi Number: <strong>${currentAssemblyInfo.part}</strong></p>
+                    <p>Serial Number: <strong>${currentAssemblyInfo.serial}</strong></p>
+                    <p>Voter Epic Number: <strong>${voter.epic_no}</strong></p>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+        };
+
+        closeModalBtn.addEventListener('click', () => {
+            modal.classList.add('hidden');
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.classList.add('hidden');
+        });
+
+        function getMessage() {
+            if (!currentVoter) return '';
+            const nameParts = currentVoter.name.split(' ');
+            const firstName = nameParts[0] || '';
+            const middleName = nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : (nameParts[1] || '');
+            const lastName = nameParts.length > 2 ? nameParts[nameParts.length - 1] : (nameParts.length === 2 ? nameParts[1] : '');
+
+            return `*Voters Slip*
+*नमस्कार, ${currentVoter.name}*
+*विधानसभा - ${currentAssemblyInfo.assembly}*
+*उमेदवार : श्री सचिन संभाजी देसाई *
+*पार्टी : बहुजन विकास आघाडी*
+*निशाणी : coming soon*
+-----------------------------
+Assembly: *${currentAssemblyInfo.assembly}*
+First Name: *${firstName}*
+Middle Name: *${middleName}*
+Last Name: *${lastName}*
+Booth Address: *${currentVoter.address}*
+Yadi Number: *${currentAssemblyInfo.part}*
+Serial Number: *${currentAssemblyInfo.serial}*
+Voter Epic Number: *${currentVoter.epic_no}*
+
+*आपला विकास बहुजन विकास*
+आमदार *श्री सचिन संभाजी देसाई - बहुजन विकास आघाडी* उमेदवार
+निशाणी: *coming soon*
+वॉर्ड करमंक ८ आपल्या ओळखीतील लोकांचे नाव शोधा आणि त्याचे तपशील Whatsapp किंवा sms द्वारे लोकांना पाठवा.`;
+        }
+
+        // 1. Share Image + Text (Mobile Web Share)
+        shareImageBtn.addEventListener('click', async () => {
+            const message = getMessage();
+
+            if (navigator.share) {
+                try {
+                    const response = await fetch('assets/Foater.jpg');
+                    const blob = await response.blob();
+                    const file = new File([blob], 'voter_slip.jpg', { type: 'image/jpeg' });
+
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                            files: [file],
+                            text: message
+                        });
+                        showToast("Shared Successfully!");
+                        modal.classList.add('hidden');
+                        whatsappInput.value = '';
+                        return;
+                    }
+                } catch (err) {
+                    console.warn("Share failed", err);
+                    showToast("Sharing failed or cancelled.");
+                }
+            } else {
+                showToast("Image sharing not supported on this device. Use 'Send Text Only'.");
+            }
+        });
+
+        // 2. Send Text Only (WhatsApp Link)
+        sendTextBtn.addEventListener('click', () => {
+            const number = whatsappInput.value.trim();
+            if (!number) {
+                showToast("Please enter a WhatsApp number");
+                return;
+            }
+            const message = getMessage();
+            const url = `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+            window.open(url, '_blank');
+            modal.classList.add('hidden');
+            whatsappInput.value = '';
+            showToast("WhatsApp Slip Sent (Text Only)");
+        });
+
+        // --- UTILS ---
+        window.showToast = (msg) => {
+            notification.innerText = msg;
+            notification.classList.remove('hidden');
+            setTimeout(() => notification.classList.add('hidden'), 3000);
+        };
+
+        // --- CODE PROTECTION ---
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        document.onkeydown = function (e) {
+            // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+            if (
+                e.keyCode == 123 ||
+                (e.ctrlKey && e.shiftKey && e.keyCode == 73) ||
+                (e.ctrlKey && e.shiftKey && e.keyCode == 74) ||
+                (e.ctrlKey && e.keyCode == 85)
+            ) {
+                return false;
+            }
+        }
+
+        // Start App
+        init();
+
+    </script>
+</body>
+
+</html>
