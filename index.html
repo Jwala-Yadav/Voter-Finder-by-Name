@@ -248,20 +248,43 @@
         // --- INITIALIZATION ---
         async function init() {
             lucide.createIcons(); // Initialize icons
+            await loadVoterData();
         }
 
         // --- DATA HANDLING ---
+        async function loadVoterData() {
+            try {
+                const res = await fetch('assets/data.json');
+                voters = await res.json();
+                console.log(`Loaded ${voters.length} voters.`);
+            } catch (e) {
+                console.error("Error loading voter data:", e);
+                showToast("Error loading data. Please refresh.");
+            }
+        }
+
         async function searchVoters(params) {
             loader.classList.remove('hidden');
             cardsGrid.innerHTML = '';
             resultsContainer.classList.remove('hidden');
             noResults.classList.add('hidden');
 
+            // Simulate network delay for better UX (optional, but feels more "real")
+            await new Promise(r => setTimeout(r, 300));
+
             try {
-                const query = new URLSearchParams(params).toString();
-                const res = await fetch(`/api/search?${query}`);
-                const data = await res.json();
-                renderResults(data);
+                const results = voters.filter(voter => {
+                    // Case-insensitive matching
+                    const fNameMatch = !params.first || (voter.name && voter.name.toLowerCase().includes(params.first.toLowerCase()));
+                    const mNameMatch = !params.middle || (voter.name && voter.name.toLowerCase().includes(params.middle.toLowerCase()));
+                    const lNameMatch = !params.last || (voter.name && voter.name.toLowerCase().includes(params.last.toLowerCase()));
+                    const epicMatch = !params.epic || (voter.epic_no && voter.epic_no.toLowerCase().includes(params.epic.toLowerCase()));
+
+                    // Return true only if ALL provided filters match
+                    return fNameMatch && mNameMatch && lNameMatch && epicMatch;
+                });
+
+                renderResults(results);
             } catch (e) {
                 console.error("Search Error", e);
                 showToast("Error searching voters");
